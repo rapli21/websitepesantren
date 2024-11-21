@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Peta Sederhana</title>
+    <!-- Link Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Link Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- Link Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <style>
+        /* Atur ukuran peta */
+        #map {
+            height: 400px; /* Ukuran peta lebih kecil dan fit dengan layar */
+        }
+        /* Gaya Navbar dengan warna biru */
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .navbar-nav .nav-item.active .nav-link {
+            color: #ffcc00 !important;
+        }
+        /* Gaya Footer dengan warna hijau */
+        footer {
+            background-color: #28a745;
+            padding: 10px 0;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+        /* Gaya kontainer utama */
+        .container {
+            margin-top: 40px;
+        }
+        h1 {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menu Navigasi -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Peta Lokasi Pondok Pesantren</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Kontak</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container Bootstrap -->
+    <div class="container">
+        <h1 class="text-center">Peta Rute Menuju Pondok Pesantren</h1>
+        <!-- Peta akan ditampilkan di sini -->
+        <div id="map"></div>
+        <div id="route-info" class="mt-4">
+            <h5>Rute dan Informasi:</h5>
+            <p id="distance">Jarak Tempuh: -</p>
+            <p id="duration">Waktu Tempuh: -</p>
+        </div>
+    </div>
+
+    <!-- Script Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Script Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <!-- Script Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Inisialisasi peta
+        var map = L.map('map').setView([-7.826387827572731, 110.36150103871014], 13); // Koordinat awal [Lat, Long]
+
+        // Menambahkan peta dasar (Tile Layer) menggunakan OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Lokasi tujuan (misalnya di lokasi tertentu)
+        var end = [-7.826387827572731, 110.36150103871014];
+
+        // Menambahkan marker untuk lokasi tujuan
+        L.marker(end).addTo(map).bindPopup("<b>Pondok Pesantren Al Munawwir</b>");
+
+        // Menambahkan rute dengan Leaflet Routing Machine
+        var routeControl;
+
+        // Fungsi untuk mendapatkan lokasi GPS pengguna
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var start = [position.coords.latitude, position.coords.longitude]; // Lokasi pengguna
+
+                    // Menambahkan marker untuk lokasi pengguna
+                    L.marker(start).addTo(map).bindPopup("<b>Lokasi Saya</b>");
+
+                    // Membuat rute dari lokasi pengguna ke lokasi tujuan
+                    routeControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(start),  // Titik awal (lokasi pengguna)
+                            L.latLng(end)     // Titik tujuan
+                        ],
+                        routeWhileDragging: true, // Rute dapat diubah dengan menyeret marker
+                        createMarker: function() { return null; } // Menyembunyikan marker rute
+                    }).addTo(map);
+
+                    // Menangkap informasi rute (jarak dan waktu)
+                    routeControl.on('routesfound', function(e) {
+                        var routes = e.routes;
+                        var distance = routes[0].summary.totalDistance / 1000; // Jarak dalam kilometer
+                        var duration = routes[0].summary.totalDuration / 60; // Waktu dalam menit
+
+                        // Menampilkan informasi jarak dan waktu
+                        document.getElementById('distance').textContent = 'Jarak Tempuh: ' + distance.toFixed(2) + ' km';
+                        document.getElementById('duration').textContent = 'Waktu Tempuh: ' + duration.toFixed(0) + ' menit';
+                    });
+                });
+            } else {
+                alert("Geolocation tidak didukung oleh browser ini.");
+            }
+        }
+
+        // Memanggil fungsi untuk mendapatkan lokasi pengguna saat halaman dimuat
+        getUserLocation();
+    </script>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Website Peta Sederhana oleh Rafly</p>
+    </footer>
+
+</body>
+</html>

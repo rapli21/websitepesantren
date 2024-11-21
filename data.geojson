@@ -1,0 +1,17 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.9213, -0.7893]
+        },
+        "properties": {
+          "name": "Taman Nasional Bromo Tengger Semeru",
+          "description": "Salah satu taman nasional paling terkenal di Jawa Timur."
+        }
+      }
+    ]
+  }
+  
